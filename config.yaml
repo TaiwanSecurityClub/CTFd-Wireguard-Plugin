@@ -1,0 +1,4 @@
+- name: nckutsc
+  url: http://172.31.200.254:3000
+- name: ntoutsc
+  url: http://172.31.210.254:3000
