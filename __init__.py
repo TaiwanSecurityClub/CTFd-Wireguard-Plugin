@@ -1,5 +1,6 @@
 from CTFd.models import db
 from CTFd.utils.decorators import authed_only,get_current_user
+from CTFd.plugins import register_plugin_assets_directory
 
 #from flask import request,render_template
 
@@ -32,9 +33,11 @@ def loadconfig():
 def load(app):
     app.db.create_all()
     loadconfig()
+
+    register_plugin_assets_directory(app, base_path='/plugins/wireguard/assets')
     
     @authed_only
-    @app.route('/wireguard/download',methods=['GET'])
+    @app.route('/plugins/wireguard/download',methods=['GET'])
     def download():
         user = get_current_user()
         try:
