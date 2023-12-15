@@ -1,6 +1,7 @@
 from CTFd.models import db
 from CTFd.utils.decorators import authed_only,get_current_user
 from CTFd.plugins import register_plugin_assets_directory
+from CTFd.models import Users
 
 #from flask import request,render_template
 
@@ -16,13 +17,19 @@ import zipfile
 conf = None
 
 class WireguardDB(db.Model):
-    name = db.Column(db.String(128), primary_key = True)
+    __tablename__ = "wireguardDB"
+    userid = db.Column(
+        db.Integer, db.ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE")
+    )
     key = db.Column(db.String(128))
     index = db.Column(db.Integer, primary_key = True, autoincrement=True)
 
-    def __init__(self, name):
-        self.name = name
+    def __init__(self, userid):
+        self.userid = userid
         self.key = requests.get(f"{conf[0]['url']}/genkey").text
+
+    def getusername(self):
+        return Users.query.filter_by(id=self.userid).first().name
 
 def loadconfig():
     global conf
@@ -41,17 +48,18 @@ def load(app):
     def download():
         user = get_current_user()
         try:
-            WireguardDB.query.filter_by(name=user.name).one()
+            WireguardDB.query.filter_by(userid=user.id).one()
         except:
-            db.session.add(WireguardDB(user.name))
+            db.session.add(WireguardDB(user.id))
             db.session.commit()
-            alluserpriv = WireguardDB.query.all()
-            alluserpriv = [{'name': userpriv.name, 'key': userpriv.key, 'index': userpriv.index} for userpriv in alluserpriv]
-            for a in conf:
-                requests.post(f"{a['url']}/reload", json=alluserpriv).text
+        
+        alluserpriv = WireguardDB.query.all()
+        alluserpriv = [{'name': userpriv.getusername(), 'key': userpriv.key, 'index': userpriv.index} for userpriv in alluserpriv]
+        for a in conf:
+            requests.post(f"{a['url']}/reload", json=alluserpriv).text
 
-        privkey = WireguardDB.query.filter_by(name=user.name).first()
-        privkey = {'name': privkey.name, 'key': privkey.key, 'index': privkey.index}
+        privkey = WireguardDB.query.filter_by(userid=user.id).first()
+        privkey = {'name': privkey.getusername(), 'key': privkey.key, 'index': privkey.index}
 
         sendfile = io.BytesIO()
         with zipfile.ZipFile(sendfile, 'w') as myzip:
