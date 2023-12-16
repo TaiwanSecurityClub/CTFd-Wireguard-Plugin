@@ -1,5 +1,5 @@
 from CTFd.models import db
-from CTFd.utils.decorators import authed_only,get_current_user
+from CTFd.utils.decorators import authed_only,get_current_user,admins_only
 from CTFd.plugins import register_plugin_assets_directory
 from CTFd.models import Users
 
@@ -42,6 +42,16 @@ def load(app):
     loadconfig()
 
     register_plugin_assets_directory(app, base_path='/plugins/wireguard/assets')
+    
+    @admins_only
+    @app.route('/plugins/wireguard/getuserid',methods=['POST'])
+    def getuserid():
+        data = flask.request.get_json()
+        privkey = WireguardDB.query.filter_by(userid=data['index']).first()
+        if privkey == None:
+            return flask.jsonify(None)
+
+        return flask.jsonify(privkey.userid)
     
     @authed_only
     @app.route('/plugins/wireguard/download',methods=['GET'])
