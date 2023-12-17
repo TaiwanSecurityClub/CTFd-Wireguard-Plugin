@@ -15,6 +15,7 @@ import requests
 import zipfile
 
 conf = None
+plugin_name = __name__.split('.')[-1]
 
 class WireguardDB(db.Model):
     __tablename__ = "wireguardDB"
@@ -41,10 +42,10 @@ def load(app):
     app.db.create_all()
     loadconfig()
 
-    register_plugin_assets_directory(app, base_path='/plugins/wireguard/assets')
+    register_plugin_assets_directory(app, base_path=f'/plugins/{plugin_name}/assets')
     
     @admins_only
-    @app.route('/plugins/wireguard/getuserid',methods=['POST'])
+    @app.route(f'/plugins/{plugin_name}/getuserid',methods=['POST'])
     def getuserid():
         data = flask.request.get_json()
         privkey = WireguardDB.query.filter_by(userid=data['index']).first()
@@ -54,7 +55,7 @@ def load(app):
         return flask.jsonify(privkey.userid)
     
     @authed_only
-    @app.route('/plugins/wireguard/download',methods=['GET'])
+    @app.route(f'/plugins/{plugin_name}/download',methods=['GET'])
     def download():
         user = get_current_user()
         try:
