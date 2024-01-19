@@ -48,7 +48,7 @@ def load(app):
     @app.route(f'/plugins/{plugin_name}/getuserid',methods=['POST'])
     def getuserid():
         data = flask.request.get_json()
-        privkey = WireguardDB.query.filter_by(userid=data['index']).first()
+        privkey = WireguardDB.query.filter_by(index=data['index']).first()
         if privkey == None:
             return flask.jsonify(None)
 
