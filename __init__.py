@@ -36,7 +36,7 @@ class WireguardDB(db.Model):
 def loadconfig():
     global conf
     dir_path = Path(__file__).parent.resolve()
-    with open(os.path.join(dir_path, 'config.yaml')) as f:
+    with open(os.path.join(dir_path, 'config.yml')) as f:
         conf = yaml.load(f, Loader=yaml.FullLoader)
 
 def load(app):
