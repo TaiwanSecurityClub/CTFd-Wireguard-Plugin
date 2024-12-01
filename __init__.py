@@ -13,6 +13,7 @@ import os
 import yaml
 import requests
 import zipfile
+import urllib.parse
 
 conf = None
 plugin_name = __name__.split('.')[-1]
@@ -27,7 +28,7 @@ class WireguardDB(db.Model):
 
     def __init__(self, userid):
         self.userid = userid
-        self.key = requests.get(f"{conf[0]['url']}/genkey").text
+        self.key = requests.get(urllib.parse.urljoin(conf[0]['url'], 'genkey')).text
 
     def getusername(self):
         return Users.query.filter_by(id=self.userid).first().name
@@ -67,7 +68,7 @@ def load(app):
         alluserpriv = WireguardDB.query.all()
         alluserpriv = [{'name': userpriv.getusername(), 'key': userpriv.key, 'index': userpriv.index} for userpriv in alluserpriv]
         for a in conf:
-            requests.post(f"{a['url']}/reload", json=alluserpriv).text
+            requests.post(urllib.parse.urljoin(a['url'], 'reload'), json=alluserpriv).text
 
         privkey = WireguardDB.query.filter_by(userid=user.id).first()
         privkey = {'name': privkey.getusername(), 'key': privkey.key, 'index': privkey.index}
@@ -75,7 +76,7 @@ def load(app):
         sendfile = io.BytesIO()
         with zipfile.ZipFile(sendfile, 'w') as myzip:
             for a in conf:
-                userconfig = requests.post(f"{a['url']}/getconfig", json=privkey).text
+                userconfig = requests.post(urllib.parse.urljoin(a['url'], 'getconfig'), json=privkey).text
                 myzip.writestr(f"{a['name']}.conf", userconfig)
 
         sendfile.seek(0)
