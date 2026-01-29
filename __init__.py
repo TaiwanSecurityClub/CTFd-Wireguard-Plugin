@@ -68,7 +68,10 @@ def load(app):
         alluserpriv = WireguardDB.query.all()
         alluserpriv = [{'name': userpriv.getusername(), 'key': userpriv.key, 'index': userpriv.index} for userpriv in alluserpriv]
         for a in conf:
-            requests.post(urllib.parse.urljoin(a['url'], 'reload'), json=alluserpriv).text
+            try:
+                requests.post(urllib.parse.urljoin(a['url'], 'reload'), json=alluserpriv).text
+            except:
+                pass
 
         privkey = WireguardDB.query.filter_by(userid=user.id).first()
         privkey = {'name': privkey.getusername(), 'key': privkey.key, 'index': privkey.index}
@@ -76,8 +79,13 @@ def load(app):
         sendfile = io.BytesIO()
         with zipfile.ZipFile(sendfile, 'w') as myzip:
             for a in conf:
-                userconfig = requests.post(urllib.parse.urljoin(a['url'], 'getconfig'), json=privkey).text
-                myzip.writestr(f"{a['name']}.conf", userconfig)
+                try:
+                    res = requests.post(urllib.parse.urljoin(a['url'], 'getconfig'), json=privkey)
+                    if res.status_code == 200:
+                        userconfig = res.text
+                        myzip.writestr(f"{a['name']}.conf", userconfig)
+                except:
+                    pass
 
         sendfile.seek(0)
         return flask.Response(sendfile.getvalue(), mimetype='application/zip', headers={'Content-Disposition': 'attachment;filename=vpnconfig.zip'})
