@@ -28,7 +28,16 @@ class WireguardDB(db.Model):
 
     def __init__(self, userid):
         self.userid = userid
-        self.key = requests.get(urllib.parse.urljoin(conf[0]['url'], 'genkey')).text
+        self.key = None
+        for a in conf:
+            try:
+                res = requests.get(urllib.parse.urljoin(a['url'], 'genkey'))
+                if res.status_code == 200:
+                    self.key = res.text
+            except:
+                pass
+        if self.key is None:
+            raise Exception("Apis not work")
 
     def getusername(self):
         return Users.query.filter_by(id=self.userid).first().name
