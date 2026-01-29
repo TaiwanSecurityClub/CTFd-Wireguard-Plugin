@@ -31,9 +31,10 @@ class WireguardDB(db.Model):
         self.key = None
         for a in conf:
             try:
-                res = requests.get(urllib.parse.urljoin(a['url'], 'genkey'))
+                res = requests.get(urllib.parse.urljoin(a['url'], 'genkey'), timeout=2)
                 if res.status_code == 200:
                     self.key = res.text
+                    break
             except:
                 pass
         if self.key is None:
@@ -78,7 +79,7 @@ def load(app):
         alluserpriv = [{'name': userpriv.getusername(), 'key': userpriv.key, 'index': userpriv.index} for userpriv in alluserpriv]
         for a in conf:
             try:
-                requests.post(urllib.parse.urljoin(a['url'], 'reload'), json=alluserpriv).text
+                requests.post(urllib.parse.urljoin(a['url'], 'reload'), json=alluserpriv, timeout=2).text
             except:
                 pass
 
@@ -89,7 +90,7 @@ def load(app):
         with zipfile.ZipFile(sendfile, 'w') as myzip:
             for a in conf:
                 try:
-                    res = requests.post(urllib.parse.urljoin(a['url'], 'getconfig'), json=privkey)
+                    res = requests.post(urllib.parse.urljoin(a['url'], 'getconfig'), json=privkey, timeout=2)
                     if res.status_code == 200:
                         userconfig = res.text
                         myzip.writestr(f"{a['name']}.conf", userconfig)
