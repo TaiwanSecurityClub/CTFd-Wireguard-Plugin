@@ -1,4 +1,12 @@
 - name: nckutsc
-  url: http://172.31.200.254:3000
+  url: http://172.31.254.0:3000
+  key: <random token>
+- name: yzutsc
+  url: http://172.31.254.1:3000
+  key: <random token>
+- name: nycutsc
+  url: http://172.31.254.2:3000
+  key: <random token>
 - name: ntoutsc
-  url: http://172.31.210.254:3000
+  url: http://172.31.254.3:3000
+  key: <random token>
